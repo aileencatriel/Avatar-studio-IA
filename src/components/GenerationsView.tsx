@@ -18,7 +18,12 @@ import {
   Zap,
   Clock,
   ExternalLink,
-  Layers
+  Layers,
+  Camera,
+  Activity,
+  Repeat,
+  Cpu,
+  Film
 } from 'lucide-react';
 
 export const GenerationsView: React.FC = () => {
@@ -50,6 +55,37 @@ export const GenerationsView: React.FC = () => {
   const [guidanceScale, setGuidanceScale] = useState<number>(7.5);
   const [voiceSpeed, setVoiceSpeed] = useState<number>(1.0);
 
+  // Model-specific Video Controls State
+  // Kling 3
+  const [kling3Mode, setKling3Mode] = useState<string>('profesional');
+  const [kling3CameraMotion, setKling3CameraMotion] = useState<string>('panoramica');
+  const [kling3MotionScale, setKling3MotionScale] = useState<number>(7);
+
+  // Kling Motion control
+  const [klingMotionReferenceUrl, setKlingMotionReferenceUrl] = useState<string>('');
+  const [klingMotionTrajectory, setKlingMotionTrajectory] = useState<string>('orbita_circular');
+  const [klingMotionVelocityCurve, setKlingMotionVelocityCurve] = useState<string>('curva_s');
+  const [klingMotionOrbitGuidance, setKlingMotionOrbitGuidance] = useState<number>(75);
+
+  // Seedance 2
+  const [seedanceStyle, setSeedanceStyle] = useState<string>('urbano');
+  const [seedanceIntensity, setSeedanceIntensity] = useState<number>(80);
+  const [seedanceBpm, setSeedanceBpm] = useState<number>(128);
+  const [seedancePhysics, setSeedancePhysics] = useState<string>('alta_precision');
+
+  // Gemini Omni Flash preview
+  const [omniFlashLatencyMode, setOmniFlashLatencyMode] = useState<string>('ultra_baja');
+  const [omniFlashMultimodalStream, setOmniFlashMultimodalStream] = useState<boolean>(true);
+  const [omniFlashExpressiveness, setOmniFlashExpressiveness] = useState<number>(8);
+  const [omniFlashFps, setOmniFlashFps] = useState<number>(30);
+
+  // Omni Flash Ext
+  const [omniExtLength, setOmniExtLength] = useState<number>(10);
+  const [omniExtInfiniteLoop, setOmniExtInfiniteLoop] = useState<boolean>(false);
+  const [omniExtSeamlessBlend, setOmniExtSeamlessBlend] = useState<number>(85);
+  const [omniExtKeyframeAnchor, setOmniExtKeyframeAnchor] = useState<string>('ultimo_fotograma');
+  const [omniExtResolution, setOmniExtResolution] = useState<string>('1080p');
+
   // Status
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [latestGeneration, setLatestGeneration] = useState<Generation | null>(null);
@@ -61,12 +97,12 @@ export const GenerationsView: React.FC = () => {
   useEffect(() => {
     if (selectedAvatar) {
       if (activeTab === 'imagen') {
-        setSelectedModelId(selectedAvatar.modelo_imagen || 'apimart-flux-1-dev');
+        setSelectedModelId(selectedAvatar.modelo_imagen || 'apimart-nano-banana-pro');
         if (!prompt) {
           setPrompt(selectedAvatar.prompt_base || `Cinematic ultra-realistic portrait of ${selectedAvatar.nombre}, 8k resolution, photorealistic`);
         }
       } else if (activeTab === 'video') {
-        setSelectedModelId(selectedAvatar.modelo_video || 'apimart-kling-video-1.5');
+        setSelectedModelId(selectedAvatar.modelo_video || 'apimart-kling-3');
         if (!prompt) {
           setPrompt(`${selectedAvatar.nombre} speaking directly to camera, natural facial motion and head movement`);
         }
@@ -75,6 +111,12 @@ export const GenerationsView: React.FC = () => {
         if (!prompt) {
           setPrompt(`Hola, soy ${selectedAvatar.nombre}. Bienvenido a este reporte de actualización.`);
         }
+      }
+    } else {
+      if (activeTab === 'imagen' && !selectedModelId) {
+        setSelectedModelId('apimart-nano-banana-pro');
+      } else if (activeTab === 'video' && !selectedModelId) {
+        setSelectedModelId('apimart-kling-3');
       }
     }
   }, [avatarId, activeTab, selectedAvatar]);
@@ -100,7 +142,7 @@ export const GenerationsView: React.FC = () => {
       const payload = {
         type: activeTab,
         prompt,
-        model: selectedModelId || (activeTab === 'imagen' ? 'apimart-flux-1-dev' : activeTab === 'video' ? 'apimart-kling-video-1.5' : 'apimart-elevenlabs-multilingual-v2'),
+        model: selectedModelId || (activeTab === 'imagen' ? 'apimart-nano-banana-pro' : activeTab === 'video' ? 'apimart-kling-3' : 'apimart-elevenlabs-multilingual-v2'),
         avatarId,
         parameters: {
           aspect_ratio: aspectRatio,
@@ -108,7 +150,38 @@ export const GenerationsView: React.FC = () => {
           steps,
           guidance_scale: guidanceScale,
           speed: voiceSpeed,
-          reference_image: referenceImageUrl
+          reference_image: referenceImageUrl,
+          // Video Model Specific Configurations
+          ...(selectedModelId === 'apimart-kling-3' && {
+            mode: kling3Mode,
+            camera_motion: kling3CameraMotion,
+            motion_scale: kling3MotionScale
+          }),
+          ...(selectedModelId === 'apimart-kling-motion-control' && {
+            motion_reference_url: klingMotionReferenceUrl,
+            trajectory: klingMotionTrajectory,
+            velocity_curve: klingMotionVelocityCurve,
+            orbit_guidance: klingMotionOrbitGuidance
+          }),
+          ...(selectedModelId === 'apimart-seedance-2' && {
+            dance_style: seedanceStyle,
+            intensity: seedanceIntensity,
+            beat_sync_bpm: seedanceBpm,
+            physics_simulation: seedancePhysics
+          }),
+          ...(selectedModelId === 'apimart-gemini-omni-flash-preview' && {
+            latency_mode: omniFlashLatencyMode,
+            multimodal_stream: omniFlashMultimodalStream,
+            expressiveness: omniFlashExpressiveness,
+            fps: omniFlashFps
+          }),
+          ...(selectedModelId === 'apimart-omni-flash-ext' && {
+            extension_length: omniExtLength,
+            infinite_loop: omniExtInfiniteLoop,
+            seamless_blend: omniExtSeamlessBlend,
+            keyframe_anchor: omniExtKeyframeAnchor,
+            resolution: omniExtResolution
+          })
         }
       };
 
@@ -222,11 +295,15 @@ export const GenerationsView: React.FC = () => {
                 onChange={(e) => setAvatarId(e.target.value)}
                 className="w-full p-2.5 bg-[#0B0B0D] border border-[#27282D] rounded-xl text-xs text-white focus:outline-none focus:border-[#FFC600]"
               >
-                {avatars.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.nombre} ({a.profesion || a.rol})
-                  </option>
-                ))}
+                {avatars.length === 0 ? (
+                  <option value="">Generación Libre (Sin Avatar Configurado)</option>
+                ) : (
+                  avatars.map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.nombre} ({a.profesion || a.rol})
+                    </option>
+                  ))
+                )}
               </select>
             </div>
 
@@ -342,28 +419,374 @@ export const GenerationsView: React.FC = () => {
           )}
 
           {activeTab === 'video' && (
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <div>
-                <label className="block text-gray-400 text-[11px] mb-1">Duración (Segundos)</label>
-                <select
-                  value={duration}
-                  onChange={(e) => setDuration(Number(e.target.value))}
-                  className="w-full p-2 bg-[#0B0B0D] border border-[#27282D] rounded-xl text-xs text-white"
-                >
-                  <option value={5}>5 Segundos</option>
-                  <option value={10}>10 Segundos Pro</option>
-                </select>
+            <div className="space-y-4 pt-1">
+              {/* Base Video Controls */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-gray-400 text-[11px] mb-1">Duración (Segundos)</label>
+                  <select
+                    value={duration}
+                    onChange={(e) => setDuration(Number(e.target.value))}
+                    className="w-full p-2 bg-[#0B0B0D] border border-[#27282D] rounded-xl text-xs text-white focus:border-[#FFC600] focus:outline-none"
+                  >
+                    <option value={5}>5 Segundos Standard</option>
+                    <option value={10}>10 Segundos Pro</option>
+                    <option value={15}>15 Segundos Cinemático</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 text-[11px] mb-1">Imagen / Keyframe de Referencia URL</label>
+                  <input
+                    type="url"
+                    value={referenceImageUrl}
+                    onChange={(e) => setReferenceImageUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full p-2 bg-[#0B0B0D] border border-[#27282D] rounded-xl text-xs text-white focus:border-[#FFC600] focus:outline-none"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-gray-400 text-[11px] mb-1">Imagen de Referencia URL</label>
-                <input
-                  type="url"
-                  value={referenceImageUrl}
-                  onChange={(e) => setReferenceImageUrl(e.target.value)}
-                  placeholder="https://..."
-                  className="w-full p-2 bg-[#0B0B0D] border border-[#27282D] rounded-xl text-xs text-white"
-                />
+              {/* Model-Specific Configuration Card */}
+              <div className="bg-[#0B0B0D] p-4 rounded-xl border border-[#27282D] space-y-3.5">
+                <div className="flex items-center justify-between pb-2 border-b border-[#27282D]">
+                  <div className="flex items-center gap-2">
+                    <Sliders className="w-4 h-4 text-[#FFC600]" />
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      Configuración Específica: {
+                        selectedModelId === 'apimart-kling-3' ? 'Kling 3' :
+                        selectedModelId === 'apimart-kling-motion-control' ? 'Kling Motion control' :
+                        selectedModelId === 'apimart-seedance-2' ? 'Seedance 2' :
+                        selectedModelId === 'apimart-gemini-omni-flash-preview' ? 'Gemini Omni Flash preview' :
+                        selectedModelId === 'apimart-omni-flash-ext' ? 'Omni Flash Ext' :
+                        'APIMART Video Engine'
+                      }
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-md bg-[#FFC600]/10 border border-[#FFC600]/30 text-[10px] font-mono text-[#FFC600] font-bold">
+                    APIMART Specs
+                  </span>
+                </div>
+
+                {/* 1. Kling 3 Controls */}
+                {(selectedModelId === 'apimart-kling-3' || !selectedModelId) && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Modo de Renderizado</label>
+                        <select
+                          value={kling3Mode}
+                          onChange={(e) => setKling3Mode(e.target.value)}
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        >
+                          <option value="profesional">Profesional (4K High Fidelity)</option>
+                          <option value="estandar">Estándar (1080p Rápido)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Movimiento de Cámara (Camera Motion)</label>
+                        <select
+                          value={kling3CameraMotion}
+                          onChange={(e) => setKling3CameraMotion(e.target.value)}
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        >
+                          <option value="panoramica">Panorámica Suave Horizontal</option>
+                          <option value="zoom_in">Zoom In Dinámico</option>
+                          <option value="orbita_360">Órbita 360° Cinemática</option>
+                          <option value="dolly">Dolly Zoom Vertigo Effect</option>
+                          <option value="estatico">Estático (Estabilidad de Rostro)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center text-[11px] mb-1">
+                        <span className="text-gray-300 font-semibold">Intensidad de Movimiento (Motion Scale)</span>
+                        <span className="text-[#FFC600] font-mono font-bold">{kling3MotionScale} / 10</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        value={kling3MotionScale}
+                        onChange={(e) => setKling3MotionScale(Number(e.target.value))}
+                        className="w-full accent-[#FFC600]"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 2. Kling Motion Control */}
+                {selectedModelId === 'apimart-kling-motion-control' && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Trayectoria de Cámara (Trajectory)</label>
+                        <select
+                          value={klingMotionTrajectory}
+                          onChange={(e) => setKlingMotionTrajectory(e.target.value)}
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        >
+                          <option value="orbita_circular">Órbita Circular 3D</option>
+                          <option value="lineal">Trayectoria Lineal Directa</option>
+                          <option value="espiral_cinematografica">Espiral Cinemática Heloidal</option>
+                          <option value="seguimiento_sujeto">Seguimiento Dinámico de Sujeto</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Curva de Velocidad (Velocity Curve)</label>
+                        <select
+                          value={klingMotionVelocityCurve}
+                          onChange={(e) => setKlingMotionVelocityCurve(e.target.value)}
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        >
+                          <option value="curva_s">S-Curve Smooth (Ease-In / Ease-Out)</option>
+                          <option value="constante">Lineal Constante</option>
+                          <option value="aceleracion">Aceleración Progresiva</option>
+                          <option value="desaceleracion">Freno Suave Cinemático</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Vector de Referencia URL</label>
+                        <input
+                          type="url"
+                          value={klingMotionReferenceUrl}
+                          onChange={(e) => setKlingMotionReferenceUrl(e.target.value)}
+                          placeholder="https://... (pose or motion matrix)"
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        />
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between items-center text-[11px] mb-1">
+                          <span className="text-gray-300 font-semibold">Sensibilidad Guía Orbital</span>
+                          <span className="text-[#FFC600] font-mono font-bold">{klingMotionOrbitGuidance}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="10"
+                          max="100"
+                          value={klingMotionOrbitGuidance}
+                          onChange={(e) => setKlingMotionOrbitGuidance(Number(e.target.value))}
+                          className="w-full accent-[#FFC600] mt-1"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Seedance 2 */}
+                {selectedModelId === 'apimart-seedance-2' && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Estilo de Danza / Coreografía</label>
+                        <select
+                          value={seedanceStyle}
+                          onChange={(e) => setSeedanceStyle(e.target.value)}
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        >
+                          <option value="urbano">Urbano / Hip-Hop Rítmico</option>
+                          <option value="contemporaneo">Contemporáneo / Expresivo</option>
+                          <option value="kpop">K-Pop Dance Synchronization</option>
+                          <option value="accion">Cinematográfico / Movimiento Acción</option>
+                          <option value="libre">Expresión Libre Fluida</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Simulación Física de Telas y Cabello</label>
+                        <select
+                          value={seedancePhysics}
+                          onChange={(e) => setSeedancePhysics(e.target.value)}
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        >
+                          <option value="alta_precision">Alta Precisión Simulación 3D</option>
+                          <option value="estandar">Física Estándar</option>
+                          <option value="desactivada">Física Básica Acelerada</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <div className="flex justify-between items-center text-[11px] mb-1">
+                          <span className="text-gray-300 font-semibold">Intensidad Coreográfica</span>
+                          <span className="text-[#FFC600] font-mono font-bold">{seedanceIntensity}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="10"
+                          max="100"
+                          value={seedanceIntensity}
+                          onChange={(e) => setSeedanceIntensity(Number(e.target.value))}
+                          className="w-full accent-[#FFC600] mt-1"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Sincronización Ritmo (BPM)</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="60"
+                            max="200"
+                            value={seedanceBpm}
+                            onChange={(e) => setSeedanceBpm(Number(e.target.value))}
+                            className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white font-mono"
+                          />
+                          <span className="text-gray-400 text-xs font-mono">BPM</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* 4. Gemini Omni Flash preview */}
+                {selectedModelId === 'apimart-gemini-omni-flash-preview' && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Modo de Latencia</label>
+                        <select
+                          value={omniFlashLatencyMode}
+                          onChange={(e) => setOmniFlashLatencyMode(e.target.value)}
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        >
+                          <option value="ultra_baja">Ultra Baja Latencia (Real-Time)</option>
+                          <option value="equilibrado">Equilibrado Stream</option>
+                          <option value="maxima_calidad">Máxima Calidad Render</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Tasa de Frames (FPS)</label>
+                        <select
+                          value={omniFlashFps}
+                          onChange={(e) => setOmniFlashFps(Number(e.target.value))}
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        >
+                          <option value={24}>24 FPS (Cinematográfico)</option>
+                          <option value={30}>30 FPS (Estándar)</option>
+                          <option value={60}>60 FPS (Ultra Fluido)</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Stream Multimodal Live</label>
+                        <button
+                          type="button"
+                          onClick={() => setOmniFlashMultimodalStream(!omniFlashMultimodalStream)}
+                          className={`w-full p-2 rounded-xl text-xs font-bold transition-all ${
+                            omniFlashMultimodalStream
+                              ? 'bg-[#FFC600] text-[#0B0B0D]'
+                              : 'bg-[#16171A] text-gray-400 border border-[#27282D]'
+                          }`}
+                        >
+                          {omniFlashMultimodalStream ? 'Stream Activado (Live)' : 'Stream Desactivado'}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center text-[11px] mb-1">
+                        <span className="text-gray-300 font-semibold">Nivel de Expresividad y Emoción</span>
+                        <span className="text-[#FFC600] font-mono font-bold">{omniFlashExpressiveness} / 10</span>
+                      </div>
+                      <input
+                        type="range"
+                        min="1"
+                        max="10"
+                        value={omniFlashExpressiveness}
+                        onChange={(e) => setOmniFlashExpressiveness(Number(e.target.value))}
+                        className="w-full accent-[#FFC600]"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 5. Omni Flash Ext */}
+                {selectedModelId === 'apimart-omni-flash-ext' && (
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Longitud de Extensión</label>
+                        <select
+                          value={omniExtLength}
+                          onChange={(e) => setOmniExtLength(Number(e.target.value))}
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        >
+                          <option value={5}>+5 Segundos Extensión</option>
+                          <option value={10}>+10 Segundos Extensión</option>
+                          <option value={15}>+15 Segundos Extensión Pro</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Ancla de Fotograma Clave</label>
+                        <select
+                          value={omniExtKeyframeAnchor}
+                          onChange={(e) => setOmniExtKeyframeAnchor(e.target.value)}
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        >
+                          <option value="ultimo_fotograma">Último Fotograma como Inicio</option>
+                          <option value="loop_completo">Bucle Primer/Último Fotograma</option>
+                          <option value="fotograma_clave">Fotograma Clave Seleccionado</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Resolución</label>
+                        <select
+                          value={omniExtResolution}
+                          onChange={(e) => setOmniExtResolution(e.target.value)}
+                          className="w-full p-2 bg-[#16171A] border border-[#27282D] rounded-xl text-xs text-white"
+                        >
+                          <option value="1080p">1080p Full HD</option>
+                          <option value="4K">4K Ultra HD</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                      <div>
+                        <div className="flex justify-between items-center text-[11px] mb-1">
+                          <span className="text-gray-300 font-semibold">Mezcla Seamless Blend (Continuidad)</span>
+                          <span className="text-[#FFC600] font-mono font-bold">{omniExtSeamlessBlend}%</span>
+                        </div>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={omniExtSeamlessBlend}
+                          onChange={(e) => setOmniExtSeamlessBlend(Number(e.target.value))}
+                          className="w-full accent-[#FFC600]"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 text-[11px] font-semibold mb-1">Modo Loop Infinito</label>
+                        <button
+                          type="button"
+                          onClick={() => setOmniExtInfiniteLoop(!omniExtInfiniteLoop)}
+                          className={`w-full p-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
+                            omniExtInfiniteLoop
+                              ? 'bg-[#FFC600] text-[#0B0B0D]'
+                              : 'bg-[#16171A] text-gray-400 border border-[#27282D]'
+                          }`}
+                        >
+                          <Repeat className="w-3.5 h-3.5" />
+                          <span>{omniExtInfiniteLoop ? 'Loop Infinito Activado' : 'Loop Infinito Desactivado'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

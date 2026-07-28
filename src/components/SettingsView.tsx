@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 export const SettingsView: React.FC = () => {
-  const { settings, updateSettings, addToast } = useAppStore();
+  const { settings, updateSettings, addToast, creditsData, fetchApimartCredits } = useAppStore();
 
   const [apimartApiKey, setApimartApiKey] = useState(settings.apimartApiKey || '');
   const [supabaseUrl, setSupabaseUrl] = useState(settings.supabaseUrl || '');
@@ -54,14 +54,26 @@ export const SettingsView: React.FC = () => {
 
         <form onSubmit={handleSave} className="space-y-6 text-xs">
           {/* APIMART Credentials */}
-          <div className="space-y-3 bg-[#0B0B0D] p-4 rounded-xl border border-[#27282D]">
-            <div className="flex items-center gap-2 text-white font-bold text-sm">
-              <Zap className="w-4 h-4 text-[#FFC600]" />
-              <span>APIMART API Secret Key</span>
+          <div className="space-y-4 bg-[#0B0B0D] p-4 rounded-xl border border-[#27282D]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-white font-bold text-sm">
+                <Zap className="w-4 h-4 text-[#FFC600]" />
+                <span>APIMART API Secret Key & Créditos</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => fetchApimartCredits()}
+                disabled={creditsData.loading}
+                className="px-3 py-1 rounded-lg bg-[#FFC600]/10 hover:bg-[#FFC600]/20 text-[#FFC600] font-bold text-[11px] border border-[#FFC600]/30 transition-colors cursor-pointer"
+              >
+                {creditsData.loading ? 'Consultando...' : 'Verificar Créditos'}
+              </button>
             </div>
+
             <p className="text-gray-400">
-              La API Key de APIMART se utiliza en el servidor para comunicarse de forma segura sin exponer credenciales al navegador.
+              La API Key de APIMART se utiliza en el servidor para comunicarse de forma segura y consultar el saldo de tu cuenta.
             </p>
+
             <input
               type="password"
               value={apimartApiKey}
@@ -69,6 +81,32 @@ export const SettingsView: React.FC = () => {
               placeholder="apimart_sk_••••••••••••••••••••"
               className="w-full p-2.5 bg-[#16171A] border border-[#27282D] focus:border-[#FFC600] rounded-xl text-white font-mono"
             />
+
+            {/* Live Credit Summary Box */}
+            <div className="p-3.5 bg-[#16171A] rounded-xl border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div>
+                <span className="text-[10px] text-gray-400 uppercase tracking-wider font-semibold">Balance de Créditos APIMART</span>
+                <p className="text-lg font-bold font-mono text-white mt-0.5">
+                  {creditsData.remaining.toLocaleString()} <span className="text-xs font-normal text-gray-400">/ {creditsData.total.toLocaleString()} créditos</span>
+                </p>
+                <p className="text-[10px] text-gray-500 mt-0.5">
+                  Plan: <span className="text-gray-300 font-semibold">{creditsData.plan}</span>
+                </p>
+              </div>
+
+              <div className="w-full sm:w-36 flex flex-col items-end">
+                <div className="flex items-center justify-between w-full text-[10px] font-mono text-[#FFC600] font-bold mb-1">
+                  <span>Disponible</span>
+                  <span>{creditsData.percentage}%</span>
+                </div>
+                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#FFC600] rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min(100, Math.max(0, creditsData.percentage))}%` }}
+                  ></div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Supabase Credentials */}

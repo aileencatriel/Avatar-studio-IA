@@ -14,7 +14,9 @@ import {
   ImageIcon,
   Grid,
   List,
-  Cpu
+  Cpu,
+  Trash2,
+  UserPlus
 } from 'lucide-react';
 
 interface AvatarsViewProps {
@@ -26,7 +28,7 @@ export const AvatarsView: React.FC<AvatarsViewProps> = ({
   onOpenCreateAvatarModal,
   onEditAvatar,
 }) => {
-  const { avatars, searchQuery, setSearchQuery, setActiveTab, setSelectedAvatarId } = useAppStore();
+  const { avatars, searchQuery, setSearchQuery, setActiveTab, setSelectedAvatarId, deleteAvatar } = useAppStore();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const filteredAvatars = avatars.filter((a) => {
@@ -90,14 +92,32 @@ export const AvatarsView: React.FC<AvatarsViewProps> = ({
         </div>
       </div>
 
-      {/* Grid View */}
-      {viewMode === 'grid' ? (
+      {/* Empty state when no avatars */}
+      {filteredAvatars.length === 0 ? (
+        <div className="bg-[#16171A] border border-[#27282D] rounded-3xl p-12 text-center max-w-xl mx-auto space-y-4 my-8">
+          <div className="w-16 h-16 bg-[#FFC600]/10 rounded-2xl flex items-center justify-center mx-auto text-[#FFC600] border border-[#FFC600]/20">
+            <UserPlus className="w-8 h-8" />
+          </div>
+          <h3 className="text-lg font-bold text-white">No tienes ningún avatar registrado</h3>
+          <p className="text-xs text-gray-400 max-w-md mx-auto leading-relaxed">
+            Puedes crear un nuevo avatar personal subiendo tu propia foto (imagen maestra) y configurando sus modelos de generación (Nano banana, Nano Banana PRO, Nano Banana 2 o GPT IMAGE 2).
+          </p>
+          <button
+            onClick={onOpenCreateAvatarModal}
+            className="primary-button px-6 py-3 rounded-2xl text-xs font-bold inline-flex items-center gap-2 cursor-pointer shadow-xl shadow-[#FFC600]/10"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Crear mi Primer Avatar</span>
+          </button>
+        </div>
+      ) : viewMode === 'grid' ? (
+        /* Grid View */
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAvatars.map((avatar) => (
             <motion.div
               key={avatar.id}
               whileHover={{ y: -4 }}
-              className="bg-[#16171A] rounded-2xl border border-[#27282D] overflow-hidden hover:border-[#FFC600]/50 transition-all duration-300 flex flex-col justify-between group shadow-xl"
+              className="bg-[#16171A] rounded-2xl border border-[#27282D] overflow-hidden hover:border-[#FFC600]/50 transition-all duration-300 flex flex-col justify-between group shadow-xl relative"
             >
               {/* Image Banner */}
               <div className="aspect-[4/3] w-full bg-[#0B0B0D] relative overflow-hidden">
@@ -115,7 +135,20 @@ export const AvatarsView: React.FC<AvatarsViewProps> = ({
                   </span>
                 </div>
 
-                <div className="absolute top-3 right-3">
+                <div className="absolute top-3 right-3 flex items-center gap-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (confirm(`¿Eliminar el avatar "${avatar.nombre}"?`)) {
+                        deleteAvatar(avatar.id);
+                      }
+                    }}
+                    title="Eliminar Avatar"
+                    className="p-1.5 rounded-full bg-red-950/80 hover:bg-red-600 text-red-200 hover:text-white transition-colors border border-red-500/30 cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+
                   <span className="px-2.5 py-1 rounded-full bg-[#FFC600]/90 text-[#0B0B0D] text-[10px] font-bold shadow-md">
                     {avatar.idioma.split(' ')[0]}
                   </span>
@@ -160,7 +193,7 @@ export const AvatarsView: React.FC<AvatarsViewProps> = ({
                     onClick={() => onEditAvatar(avatar.id)}
                     className="secondary-button flex-1 py-2 px-3 rounded-xl text-xs font-semibold text-center cursor-pointer"
                   >
-                    Ficha / Editar
+                    Editar Ficha
                   </button>
 
                   <button
@@ -213,7 +246,18 @@ export const AvatarsView: React.FC<AvatarsViewProps> = ({
                   onClick={() => onEditAvatar(avatar.id)}
                   className="secondary-button px-3 py-1.5 rounded-xl text-xs font-semibold cursor-pointer"
                 >
-                  Ficha
+                  Editar
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm(`¿Eliminar el avatar "${avatar.nombre}"?`)) {
+                      deleteAvatar(avatar.id);
+                    }
+                  }}
+                  className="p-2 rounded-xl bg-red-950/40 hover:bg-red-900/60 text-red-300 hover:text-white border border-red-500/20 transition-colors cursor-pointer"
+                  title="Eliminar"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={() => {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'motion/react';
 import { useAppStore } from '../store/useAppStore';
 import { Avatar } from '../types';
@@ -15,7 +15,9 @@ import {
   Image as ImageIcon,
   Check,
   Languages,
-  UserCheck
+  UserCheck,
+  Upload,
+  ImagePlus
 } from 'lucide-react';
 
 interface AvatarBuilderModalProps {
@@ -33,6 +35,7 @@ export const AvatarBuilderModal: React.FC<AvatarBuilderModalProps> = ({
 
   const [activeSection, setActiveSection] = useState<'basic' | 'personality' | 'voice' | 'models'>('basic');
   const [isEnhancing, setIsEnhancing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form State
   const [formData, setFormData] = useState<Partial<Avatar>>({
@@ -51,7 +54,7 @@ export const AvatarBuilderModal: React.FC<AvatarBuilderModalProps> = ({
     imagen_principal: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80',
     voz: 'APIMART ElevenLabs - Multilingual ES',
     modelo_video: 'apimart-kling-video-1.5',
-    modelo_imagen: 'apimart-flux-1-dev',
+    modelo_imagen: 'apimart-nano-banana-pro',
     modelo_audio: 'apimart-elevenlabs-multilingual-v2',
     idioma: 'Español (Internacional)',
     tono: 'Profesional / Motivador',
@@ -88,7 +91,7 @@ export const AvatarBuilderModal: React.FC<AvatarBuilderModalProps> = ({
         imagen_principal: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80',
         voz: 'APIMART ElevenLabs - Neutral ES Pro',
         modelo_video: 'apimart-kling-video-1.5',
-        modelo_imagen: 'apimart-flux-1-dev',
+        modelo_imagen: 'apimart-nano-banana-pro',
         modelo_audio: 'apimart-elevenlabs-multilingual-v2',
         idioma: 'Español',
         tono: 'Sofisticado',
@@ -102,6 +105,33 @@ export const AvatarBuilderModal: React.FC<AvatarBuilderModalProps> = ({
       });
     }
   }, [avatarId, avatars, isOpen]);
+
+  const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        addToast({
+          type: 'error',
+          title: 'Archivo demasiado grande',
+          description: 'Por favor selecciona una imagen menor a 10MB.'
+        });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          const base64Data = event.target.result as string;
+          setFormData((prev) => ({ ...prev, imagen_principal: base64Data }));
+          addToast({
+            type: 'success',
+            title: 'Imagen Maestra Cargada',
+            description: 'Foto seleccionada exitosamente como referencia del avatar.'
+          });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -262,24 +292,63 @@ export const AvatarBuilderModal: React.FC<AvatarBuilderModalProps> = ({
           {activeSection === 'basic' && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {/* Image URL preview & upload */}
+                {/* Image upload & preview */}
                 <div className="md:col-span-1 space-y-2">
-                  <label className="block text-gray-300 font-semibold">Imagen Principal (Avatar)</label>
-                  <div className="aspect-square rounded-xl bg-[#0B0B0D] border border-[#27282D] overflow-hidden relative group">
-                    <img
-                      src={formData.imagen_principal}
-                      alt={formData.nombre || 'Avatar'}
-                      className="w-full h-full object-cover"
+                  <label className="block text-gray-300 font-semibold">Foto / Imagen Maestra</label>
+                  <div className="aspect-square rounded-xl bg-[#0B0B0D] border border-[#27282D] overflow-hidden relative group flex items-center justify-center">
+                    {formData.imagen_principal ? (
+                      <img
+                        src={formData.imagen_principal}
+                        alt={formData.nombre || 'Avatar'}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center p-4 text-gray-500">
+                        <ImageIcon className="w-8 h-8 mx-auto mb-1 text-gray-600" />
+                        <span className="text-[10px]">Sin foto seleccionada</span>
+                      </div>
+                    )}
+
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-3 py-1.5 rounded-lg bg-[#FFC600] text-[#0B0B0D] font-bold text-[11px] flex items-center gap-1.5 shadow-md cursor-pointer"
+                      >
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Subir Foto</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* File input (Hidden) */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImageFileUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full py-2 px-3 rounded-xl bg-[#0B0B0D] border border-[#27282D] hover:border-[#FFC600] text-gray-300 hover:text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                  >
+                    <ImagePlus className="w-4 h-4 text-[#FFC600]" />
+                    <span>Subir Foto (Imagen Maestra)</span>
+                  </button>
+
+                  <div className="pt-1">
+                    <label className="block text-[10px] text-gray-400 mb-1">O ingresa URL de imagen pública:</label>
+                    <input
+                      type="url"
+                      value={formData.imagen_principal}
+                      onChange={(e) => setFormData({ ...formData, imagen_principal: e.target.value })}
+                      placeholder="https://..."
+                      className="w-full p-2 bg-[#0B0B0D] border border-[#27282D] rounded-xl text-white text-[11px] placeholder-gray-600 focus:outline-none focus:border-[#FFC600]"
                     />
                   </div>
-                  <input
-                    type="url"
-                    value={formData.imagen_principal}
-                    onChange={(e) => setFormData({ ...formData, imagen_principal: e.target.value })}
-                    placeholder="https://..."
-                    className="w-full p-2 bg-[#0B0B0D] border border-[#27282D] rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-[#FFC600]"
-                  />
-                  <span className="text-[10px] text-gray-500">Ingresa la URL pública o genera una en el estudio.</span>
                 </div>
 
                 {/* Main Identity inputs */}

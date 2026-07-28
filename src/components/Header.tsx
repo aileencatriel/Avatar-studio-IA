@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppStore } from '../store/useAppStore';
-import { Search, Plus, Sparkles, Menu, ShieldCheck, Cpu } from 'lucide-react';
+import { Search, Plus, Sparkles, Menu, ShieldCheck, Cpu, Coins, RotateCw } from 'lucide-react';
 
 interface HeaderProps {
   onOpenMobileMenu: () => void;
@@ -11,7 +11,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenMobileMenu,
   onOpenCreateAvatarModal,
 }) => {
-  const { activeTab, setActiveTab, searchQuery, setSearchQuery, settings } = useAppStore();
+  const { activeTab, setActiveTab, searchQuery, setSearchQuery, settings, creditsData, fetchApimartCredits, currentUser } = useAppStore();
 
   const titles: Record<string, string> = {
     dashboard: 'Dashboard General',
@@ -56,10 +56,17 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right: Quick Actions & Status */}
       <div className="flex items-center gap-3 md:gap-4">
-        {/* Status Pill from Theme */}
-        <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#16171A] border border-white/10 rounded-full">
-          <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
-          <span className="text-xs font-medium text-white/70">APIMART Connected</span>
+        {/* Credits Status Pill */}
+        <div
+          onClick={() => fetchApimartCredits()}
+          title="Haz clic para actualizar créditos desde APIMART"
+          className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-[#16171A] hover:bg-[#1f2025] border border-white/10 hover:border-[#FFC600]/40 rounded-full cursor-pointer transition-all"
+        >
+          <Coins className="w-3.5 h-3.5 text-[#FFC600]" />
+          <span className="text-xs font-bold font-mono text-white">
+            {creditsData.remaining.toLocaleString()} <span className="text-[10px] text-gray-400 font-normal">créditos</span>
+          </span>
+          <RotateCw className={`w-3 h-3 text-gray-400 hover:text-[#FFC600] ${creditsData.loading ? 'animate-spin text-[#FFC600]' : ''}`} />
         </div>
 
         <button
@@ -80,7 +87,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* User Initials Avatar */}
         <div className="w-8 h-8 rounded-full bg-[#7644C6] flex items-center justify-center text-xs font-bold text-white shrink-0">
-          JD
+          {currentUser?.nombre?.[0]?.toUpperCase() || 'A'}
         </div>
       </div>
     </header>

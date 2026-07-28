@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import {
   LayoutDashboard,
@@ -12,7 +12,9 @@ import {
   Bot,
   Zap,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  RotateCw,
+  Coins
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -28,7 +30,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
   mobileOpen,
   setMobileOpen,
 }) => {
-  const { activeTab, setActiveTab, currentUser, logout, settings } = useAppStore();
+  const { activeTab, setActiveTab, currentUser, logout, settings, creditsData, fetchApimartCredits } = useAppStore();
+
+  useEffect(() => {
+    fetchApimartCredits();
+  }, []);
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -101,13 +107,41 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Credit Usage Widget */}
       {!collapsed && (
         <div className="px-1 py-2">
-          <div className="bg-[#16171A] rounded-xl p-3 border border-white/5">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[10px] uppercase tracking-wider text-white/40 font-semibold">API Credits</span>
-              <span className="text-[10px] font-mono font-bold text-[#FFC600]">82%</span>
+          <div className="bg-[#16171A] rounded-xl p-3 border border-white/5 hover:border-[#FFC600]/30 transition-colors">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <Coins className="w-3.5 h-3.5 text-[#FFC600]" />
+                <span className="text-[10px] uppercase tracking-wider text-white/60 font-bold">Créditos APIMART</span>
+              </div>
+              <button
+                onClick={() => fetchApimartCredits()}
+                disabled={creditsData.loading}
+                title="Actualizar créditos de la API"
+                className="p-1 rounded text-white/40 hover:text-[#FFC600] hover:bg-white/5 transition-all cursor-pointer disabled:opacity-50"
+              >
+                <RotateCw className={`w-3 h-3 ${creditsData.loading ? 'animate-spin text-[#FFC600]' : ''}`} />
+              </button>
             </div>
-            <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-              <div className="h-full bg-[#FFC600] rounded-full" style={{ width: '82%' }}></div>
+
+            <div className="flex items-baseline justify-between mb-2">
+              <span className="text-sm font-bold font-mono text-white">
+                {creditsData.remaining.toLocaleString()} <span className="text-[10px] font-normal text-gray-400">/ {creditsData.total.toLocaleString()}</span>
+              </span>
+              <span className="text-[11px] font-mono font-bold text-[#FFC600]">
+                {creditsData.percentage}%
+              </span>
+            </div>
+
+            <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden mb-2">
+              <div
+                className="h-full bg-gradient-to-r from-[#FFC600] to-[#F81878] rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.max(0, creditsData.percentage))}%` }}
+              ></div>
+            </div>
+
+            <div className="flex items-center justify-between text-[9px] text-gray-500 pt-0.5">
+              <span className="truncate max-w-[120px]">{creditsData.plan}</span>
+              {creditsData.lastUpdated && <span>{creditsData.lastUpdated}</span>}
             </div>
           </div>
         </div>

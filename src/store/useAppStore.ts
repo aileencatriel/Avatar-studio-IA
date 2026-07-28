@@ -2,6 +2,18 @@ import { create } from 'zustand';
 import { Avatar, Project, Generation, AIModel, FileAsset, UserProfile, AppSettings, ToastMessage } from '../types';
 import { INITIAL_AVATARS, INITIAL_PROJECTS, INITIAL_GENERATIONS, INITIAL_MODELS, INITIAL_ASSETS } from '../data/initialData';
 
+export interface CreditsData {
+  total: number;
+  used: number;
+  remaining: number;
+  percentage: number;
+  plan: string;
+  connected: boolean;
+  live: boolean;
+  loading: boolean;
+  lastUpdated?: string;
+}
+
 interface AppState {
   // Auth
   currentUser: UserProfile | null;
@@ -24,7 +36,8 @@ interface AppState {
   settings: AppSettings;
   toasts: ToastMessage[];
 
-  // Sync / Loading state
+  // Credits & APIMART state
+  creditsData: CreditsData;
   isSyncingModels: boolean;
 
   // Actions
@@ -35,6 +48,7 @@ interface AppState {
   setSelectedAvatarId: (id: string | null) => void;
   setSelectedProjectId: (id: string | null) => void;
   setSelectedGenerationId: (id: string | null) => void;
+  fetchApimartCredits: () => Promise<void>;
 
   // Avatar Actions
   addAvatar: (avatar: Omit<Avatar, 'id' | 'fecha_creacion'>) => Avatar;
@@ -46,9 +60,12 @@ interface AppState {
   updateProject: (id: string, updates: Partial<Project>) => void;
   deleteProject: (id: string) => void;
 
-  // Generation Actions
+  // Generation & Asset Actions
   addGeneration: (gen: Omit<Generation, 'id' | 'fecha'>) => Generation;
   updateGenerationStatus: (id: string, estado: Generation['estado'], resultUrl?: string) => void;
+  updateGeneration: (id: string, updates: Partial<Generation>) => void;
+  deleteGeneration: (id: string) => void;
+  deleteAsset: (id: string) => void;
 
   // Model Actions
   setModels: (models: AIModel[]) => void;
@@ -70,8 +87,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   supabaseUrl: import.meta.env.VITE_SUPABASE_URL || 'https://kbdhzssmodxcmgnhyuln.supabase.co',
   supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZGh6c3Ntb2R4Y21nbmh5dWxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNTk3MTAsImV4cCI6MjEwMDgzNTcxMH0.fXOMwOm0YHBBit6kPhngAcFTxHau-LtMTpKDMC8z5WQ',
   supabaseServiceRoleKey: '',
-  defaultImageModel: 'apimart-flux-1-dev',
-  defaultVideoModel: 'apimart-kling-video-1.5',
+  defaultImageModel: 'apimart-nano-banana-pro',
+  defaultVideoModel: 'apimart-kling-3',
   defaultAudioModel: 'apimart-elevenlabs-multilingual-v2',
   defaultLanguageModel: 'apimart-gpt4o-multimodal',
   theme: 'dark',
@@ -98,6 +115,17 @@ export const useAppStore = create<AppState>((set, get) => ({
   assets: INITIAL_ASSETS,
   settings: DEFAULT_SETTINGS,
   toasts: [],
+
+  creditsData: {
+    total: 10000,
+    used: 1820,
+    remaining: 8180,
+    percentage: 82,
+    plan: 'APIMART Enterprise API',
+    connected: true,
+    live: false,
+    loading: false
+  },
   isSyncingModels: false,
 
   login: async (email: string, password?: string) => {
@@ -146,6 +174,35 @@ export const useAppStore = create<AppState>((set, get) => ({
   setSelectedAvatarId: (id) => set({ selectedAvatarId: id }),
   setSelectedProjectId: (id) => set({ selectedProjectId: id }),
   setSelectedGenerationId: (id) => set({ selectedGenerationId: id }),
+
+  fetchApimartCredits: async () => {
+    set((state) => ({ creditsData: { ...state.creditsData, loading: true } }));
+    try {
+      const userKey = get().settings.apimartApiKey;
+      const res = await fetch('/api/apimart/credits', {
+        headers: userKey ? { 'x-apimart-key': userKey } : {}
+      });
+      if (res.ok) {
+        const data = await res.json();
+        set({
+          creditsData: {
+            total: data.total || 10000,
+            used: data.used || 0,
+            remaining: data.remaining || 10000,
+            percentage: data.percentage ?? 100,
+            plan: data.plan || 'APIMART Enterprise API',
+            connected: Boolean(data.connected),
+            live: Boolean(data.live),
+            loading: false,
+            lastUpdated: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          }
+        });
+      }
+    } catch (err) {
+      console.warn('Error fetching credits from API', err);
+      set((state) => ({ creditsData: { ...state.creditsData, loading: false } }));
+    }
+  },
 
   // Avatar CRUD
   addAvatar: (avatarData) => {
@@ -261,6 +318,40 @@ export const useAppStore = create<AppState>((set, get) => ({
     }));
   },
 
+  updateGeneration: (id, updates) => {
+    set((state) => ({
+      generations: state.generations.map((g) => (g.id === id ? { ...g, ...updates } : g))
+    }));
+    get().addToast({
+      type: 'info',
+      title: 'Generación Actualizada',
+      description: 'Se han guardado las modificaciones del contenido.'
+    });
+  },
+
+  deleteGeneration: (id) => {
+    set((state) => ({
+      generations: state.generations.filter((g) => g.id !== id),
+      assets: state.assets.filter((a) => a.generacion_id !== id)
+    }));
+    get().addToast({
+      type: 'warning',
+      title: 'Generación Eliminada',
+      description: 'El contenido y su archivo asociado han sido eliminados.'
+    });
+  },
+
+  deleteAsset: (id) => {
+    set((state) => ({
+      assets: state.assets.filter((a) => a.id !== id)
+    }));
+    get().addToast({
+      type: 'warning',
+      title: 'Archivo Eliminado',
+      description: 'El elemento seleccionado fue removido de la galería.'
+    });
+  },
+
   // Models
   setModels: (models) => set({ models }),
 
@@ -303,6 +394,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set((state) => ({
       settings: { ...state.settings, ...newSettings }
     }));
+    get().fetchApimartCredits();
     get().addToast({
       type: 'success',
       title: 'Configuración Guardada',
