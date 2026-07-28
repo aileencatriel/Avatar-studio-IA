@@ -81,14 +81,8 @@ const DEFAULT_SETTINGS: AppSettings = {
 
 export const useAppStore = create<AppState>((set, get) => ({
   // Default logged in user for immediate experience, or null if logged out
-  currentUser: {
-    id: 'usr-admin-01',
-    email: 'admin@avatarstudio.ai',
-    nombre: 'Director Creativo',
-    fecha_creacion: '2026-07-01T00:00:00Z',
-    rol: 'Administrador'
-  },
-  isAuthenticated: true,
+  currentUser: null,
+  isAuthenticated: false,
   loginError: null,
 
   activeTab: 'dashboard',
