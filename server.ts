@@ -161,29 +161,6 @@ async function startServer() {
             es_favorito: true
           },
           {
-            id: 'apimart-elevenlabs-multilingual-v2',
-            nombre: 'APIMART ElevenLabs Multilingual V2',
-            proveedor: 'APIMART',
-            categoria: 'audio',
-            descripcion: 'Clonación de voz y síntesis de voz natural ultra realista con infusión de emociones.',
-            version: 'v2.0',
-            parametros_admitidos: ['text', 'voice_id', 'stability', 'clarity', 'speed'],
-            estado: 'activo',
-            capacidades: ['Voice Cloning', 'Multilingual (29 idiomas)'],
-            es_favorito: true
-          },
-          {
-            id: 'apimart-suno-music-v4',
-            nombre: 'APIMART Suno Music V4 Engine',
-            proveedor: 'APIMART',
-            categoria: 'audio',
-            descripcion: 'Generación de bandas sonoras, canciones completas y efectos de sonido para avatares.',
-            version: 'v4.0',
-            parametros_admitidos: ['prompt', 'genre', 'mood'],
-            estado: 'activo',
-            capacidades: ['Full Track Production']
-          },
-          {
             id: 'apimart-gpt4o-multimodal',
             nombre: 'APIMART Omni GPT-4o Vision & Voice',
             proveedor: 'APIMART',
@@ -213,20 +190,24 @@ async function startServer() {
       // If user provided APIMART key, proxy directly to APIMART API endpoint
       if (apiKey) {
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000);
           const apiRes = await fetch("https://api.apimart.ai/v1/generations", {
             method: "POST",
             headers: {
               "Authorization": `Bearer ${apiKey}`,
               "Content-Type": "application/json"
             },
-            body: JSON.stringify({ type, prompt, model, parameters })
+            body: JSON.stringify({ type, prompt, model, parameters }),
+            signal: controller.signal
           });
+          clearTimeout(timeoutId);
           if (apiRes.ok) {
             const data = await apiRes.json();
             return res.json(data);
           }
         } catch (e) {
-          console.warn("APIMART endpoint unavailable, generating high quality media stream result.");
+          console.warn("APIMART endpoint unavailable, generating high quality media result.");
         }
       }
 
@@ -240,7 +221,18 @@ async function startServer() {
       let resolution = '1920x1080';
       let fileSizeMb = 3.2;
 
-      if (type === 'imagen') {
+      if (type === 'video') {
+        const videoSamples = [
+          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
+        ];
+        resultUrl = videoSamples[Math.floor(Math.random() * videoSamples.length)];
+        durationSeconds = parameters?.duration || 5;
+        fileSizeMb = +(12.5 + Math.random() * 10).toFixed(1);
+      } else {
+        // Default to image
+        detectedType = 'imagen';
         const imageSamples = [
           'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=1200&q=80',
           'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=1200&q=80',
@@ -251,22 +243,6 @@ async function startServer() {
         resultUrl = imageSamples[Math.floor(Math.random() * imageSamples.length)];
         fileSizeMb = +(2.5 + Math.random() * 2).toFixed(1);
         resolution = parameters?.aspect_ratio === '9:16' ? '1080x1920' : '1920x1080';
-      } else if (type === 'video') {
-        const videoSamples = [
-          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-          'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
-        ];
-        resultUrl = videoSamples[Math.floor(Math.random() * videoSamples.length)];
-        durationSeconds = parameters?.duration || 5;
-        fileSizeMb = +(12.5 + Math.random() * 10).toFixed(1);
-      } else if (type === 'audio') {
-        resultUrl = 'https://actions.google.com/sounds/v1/ambiences/office_environment.ogg';
-        durationSeconds = Math.min(30, Math.max(5, Math.ceil((prompt?.length || 20) / 12)));
-        fileSizeMb = +(1.2 + Math.random()).toFixed(1);
-        resolution = 'Audio 320kbps MP3';
-      } else {
-        resultUrl = 'Contenido de texto generado correctamente por el modelo APIMART.';
       }
 
       res.json({
@@ -274,7 +250,7 @@ async function startServer() {
         type: detectedType,
         result_url: resultUrl,
         prompt: prompt,
-        model_used: model || 'apimart-flux-1-dev',
+        model_used: model || 'apimart-kling-3',
         execution_time_ms: Date.now() - startTime,
         estimated_cost: +(0.01 + Math.random() * 0.05).toFixed(3),
         file_size_mb: fileSizeMb,
@@ -294,7 +270,7 @@ async function startServer() {
       const apiKey = (req.headers['x-apimart-key'] as string) || process.env.APIMART_API_KEY;
 
       if (apiKey) {
-        // Attempt to fetch live credit/balance data from APIMART API endpoints
+        // Attempt to fetch live credit/balance data from APIMART API endpoints with fast timeout
         const endpoints = [
           "https://api.apimart.ai/v1/user/credits",
           "https://api.apimart.ai/v1/user/balance",
@@ -304,12 +280,18 @@ async function startServer() {
 
         for (const ep of endpoints) {
           try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 1500);
+
             const apiRes = await fetch(ep, {
               headers: {
                 "Authorization": `Bearer ${apiKey}`,
                 "Content-Type": "application/json"
-              }
+              },
+              signal: controller.signal
             });
+            clearTimeout(timeoutId);
+
             if (apiRes.ok) {
               const data = await apiRes.json();
               const credits = data.credits ?? data.remaining_credits ?? data.balance ?? data.data?.credits ?? 8500;
@@ -335,7 +317,7 @@ async function startServer() {
       }
 
       // Default structured response when key is not present or endpoint is mocked
-      res.json({
+      return res.json({
         total: 10000,
         used: 1820,
         remaining: 8180,
@@ -347,7 +329,17 @@ async function startServer() {
       });
 
     } catch (err: any) {
-      res.status(500).json({ error: err.message || 'Error fetching credits' });
+      // Fallback response even on exception so client always receives valid credit data
+      return res.json({
+        total: 10000,
+        used: 1820,
+        remaining: 8180,
+        percentage: 82,
+        plan: "APIMART Enterprise API",
+        connected: false,
+        live: false,
+        timestamp: new Date().toISOString()
+      });
     }
   });
 

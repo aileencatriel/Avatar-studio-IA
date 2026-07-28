@@ -68,7 +68,7 @@ export const ModelsView: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-1.5 bg-[#16171A] p-1 rounded-xl border border-[#27282D] overflow-x-auto">
-          {['all', 'imagen', 'video', 'audio', 'multimodal', 'lenguaje'].map((cat) => (
+          {['all', 'imagen', 'video', 'multimodal', 'lenguaje'].map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}

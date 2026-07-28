@@ -187,7 +187,6 @@ export const AvatarBuilderModal: React.FC<AvatarBuilderModalProps> = ({
 
   const imageModels = models.filter((m) => m.categoria === 'imagen');
   const videoModels = models.filter((m) => m.categoria === 'video');
-  const audioModels = models.filter((m) => m.categoria === 'audio');
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
@@ -581,7 +580,7 @@ export const AvatarBuilderModal: React.FC<AvatarBuilderModalProps> = ({
           {/* Section 4: APIMART Models & Prompts */}
           {activeSection === 'models' && (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-gray-300 font-semibold mb-1">Modelo Imagen Favorito</label>
                   <select
@@ -603,19 +602,6 @@ export const AvatarBuilderModal: React.FC<AvatarBuilderModalProps> = ({
                     className="w-full p-2.5 bg-[#0B0B0D] border border-[#27282D] rounded-xl text-white focus:outline-none focus:border-[#FFC600]"
                   >
                     {videoModels.map((m) => (
-                      <option key={m.id} value={m.id}>{m.nombre}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-gray-300 font-semibold mb-1">Modelo Audio Favorito</label>
-                  <select
-                    value={formData.modelo_audio}
-                    onChange={(e) => setFormData({ ...formData, modelo_audio: e.target.value })}
-                    className="w-full p-2.5 bg-[#0B0B0D] border border-[#27282D] rounded-xl text-white focus:outline-none focus:border-[#FFC600]"
-                  >
-                    {audioModels.map((m) => (
                       <option key={m.id} value={m.id}>{m.nombre}</option>
                     ))}
                   </select>

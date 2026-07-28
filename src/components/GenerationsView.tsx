@@ -38,7 +38,7 @@ export const GenerationsView: React.FC = () => {
     settings
   } = useAppStore();
 
-  const [activeTab, setActiveTab] = useState<MediaCategory>('imagen');
+  const [activeTab, setActiveTab] = useState<'imagen' | 'video'>('imagen');
   const [avatarId, setAvatarId] = useState<string>(selectedAvatarId || avatars[0]?.id || '');
   const [projectId, setProjectId] = useState<string>(selectedProjectId || projects[0]?.id || '');
 
@@ -53,7 +53,6 @@ export const GenerationsView: React.FC = () => {
   const [duration, setDuration] = useState<number>(5);
   const [steps, setSteps] = useState<number>(30);
   const [guidanceScale, setGuidanceScale] = useState<number>(7.5);
-  const [voiceSpeed, setVoiceSpeed] = useState<number>(1.0);
 
   // Model-specific Video Controls State
   // Kling 3
@@ -106,11 +105,6 @@ export const GenerationsView: React.FC = () => {
         if (!prompt) {
           setPrompt(`${selectedAvatar.nombre} speaking directly to camera, natural facial motion and head movement`);
         }
-      } else if (activeTab === 'audio') {
-        setSelectedModelId(selectedAvatar.modelo_audio || 'apimart-elevenlabs-multilingual-v2');
-        if (!prompt) {
-          setPrompt(`Hola, soy ${selectedAvatar.nombre}. Bienvenido a este reporte de actualización.`);
-        }
       }
     } else {
       if (activeTab === 'imagen' && !selectedModelId) {
@@ -124,7 +118,6 @@ export const GenerationsView: React.FC = () => {
   const activeModels = models.filter((m) => {
     if (activeTab === 'imagen') return m.categoria === 'imagen';
     if (activeTab === 'video') return m.categoria === 'video';
-    if (activeTab === 'audio') return m.categoria === 'audio';
     return true;
   });
 
@@ -149,7 +142,6 @@ export const GenerationsView: React.FC = () => {
           duration,
           steps,
           guidance_scale: guidanceScale,
-          speed: voiceSpeed,
           reference_image: referenceImageUrl,
           // Video Model Specific Configurations
           ...(selectedModelId === 'apimart-kling-3' && {
@@ -260,18 +252,6 @@ export const GenerationsView: React.FC = () => {
             <Video className="w-4 h-4" />
             <span>Generar Videos (Kling/Runway)</span>
           </button>
-
-          <button
-            onClick={() => setActiveTab('audio')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
-              activeTab === 'audio'
-                ? 'bg-[#FFC600] text-[#0B0B0D] shadow-md shadow-[#FFC600]/10'
-                : 'text-gray-400 hover:text-white hover:bg-[#0B0B0D]'
-            }`}
-          >
-            <Music className="w-4 h-4" />
-            <span>Sintetizar Audio & Voces</span>
-          </button>
         </div>
 
         <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-[#0B0B0D] rounded-xl border border-[#27282D]">
@@ -348,13 +328,13 @@ export const GenerationsView: React.FC = () => {
           <div>
             <div className="flex justify-between items-center mb-1.5">
               <label className="text-xs font-semibold text-gray-300">
-                {activeTab === 'audio' ? 'Texto a Sintetizar / Guión' : 'Prompt Descriptivo'}
+                Prompt Descriptivo
               </label>
               {selectedAvatar && (
                 <button
                   type="button"
                   onClick={() => setPrompt(selectedAvatar.prompt_base || '')}
-                  className="text-[10px] text-[#FFC600] hover:underline"
+                  className="text-[10px] text-[#FFC600] hover:underline cursor-pointer"
                 >
                   Cargar Prompt Base
                 </button>
@@ -365,11 +345,7 @@ export const GenerationsView: React.FC = () => {
               required
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              placeholder={
-                activeTab === 'audio'
-                  ? 'Escribe el texto que hablará el avatar...'
-                  : 'Describe la imagen o video en detalle...'
-              }
+              placeholder="Describe la imagen o video en detalle..."
               className="w-full p-3 bg-[#0B0B0D] border border-[#27282D] rounded-xl text-xs text-white placeholder-gray-600 focus:outline-none focus:border-[#FFC600] leading-relaxed"
             />
           </div>

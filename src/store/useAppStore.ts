@@ -89,7 +89,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   supabaseServiceRoleKey: '',
   defaultImageModel: 'apimart-nano-banana-pro',
   defaultVideoModel: 'apimart-kling-3',
-  defaultAudioModel: 'apimart-elevenlabs-multilingual-v2',
   defaultLanguageModel: 'apimart-gpt4o-multimodal',
   theme: 'dark',
   autoSaveGenerations: true,
@@ -200,6 +199,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       }
     } catch (err) {
       console.warn('Error fetching credits from API', err);
+    } finally {
       set((state) => ({ creditsData: { ...state.creditsData, loading: false } }));
     }
   },
@@ -292,14 +292,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       generacion_id: newGen.id,
       avatar_id: newGen.avatar_id,
       proyecto_id: newGen.proyecto_id,
-      nombre: `${newGen.tipo.toUpperCase()}_${Date.now()}.${newGen.tipo === 'video' ? 'mp4' : newGen.tipo === 'audio' ? 'mp3' : 'png'}`,
+      nombre: `${newGen.tipo.toUpperCase()}_${Date.now()}.${newGen.tipo === 'video' ? 'mp4' : 'png'}`,
       tipo: newGen.tipo,
       url: newGen.archivo_generado,
       tamano: `${newGen.tamano_mb || 2.5} MB`,
       duracion: newGen.duracion_segundos ? `00:${newGen.duracion_segundos < 10 ? '0' : ''}${newGen.duracion_segundos}` : undefined,
       resolucion: newGen.resolucion || '1080p',
       fecha: newGen.fecha,
-      formato: newGen.tipo === 'video' ? 'mp4' : newGen.tipo === 'audio' ? 'mp3' : 'png'
+      formato: newGen.tipo === 'video' ? 'mp4' : 'png'
     };
 
     set((state) => ({

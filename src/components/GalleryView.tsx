@@ -116,15 +116,6 @@ export const GalleryView: React.FC = () => {
               <Video className="w-3.5 h-3.5" />
               <span>Videos</span>
             </button>
-            <button
-              onClick={() => setFilterType('audio')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 cursor-pointer ${
-                filterType === 'audio' ? 'bg-[#FFC600] text-[#0B0B0D]' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <Music className="w-3.5 h-3.5" />
-              <span>Audios</span>
-            </button>
           </div>
         </div>
 
@@ -169,13 +160,6 @@ export const GalleryView: React.FC = () => {
 
                   {asset.tipo === 'video' && (
                     <video src={asset.url} className="w-full h-full object-cover" />
-                  )}
-
-                  {asset.tipo === 'audio' && (
-                    <div className="p-4 text-center">
-                      <Music className="w-8 h-8 text-[#FFC600] mx-auto" />
-                      <span className="text-[10px] text-gray-400 mt-2 block">{asset.duracion}</span>
-                    </div>
                   )}
 
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
@@ -234,9 +218,6 @@ export const GalleryView: React.FC = () => {
                 )}
                 {selectedAsset.tipo === 'video' && (
                   <video src={selectedAsset.url} controls autoPlay className="max-h-80 w-full" />
-                )}
-                {selectedAsset.tipo === 'audio' && (
-                  <audio src={selectedAsset.url} controls className="w-full p-4" />
                 )}
               </div>
 

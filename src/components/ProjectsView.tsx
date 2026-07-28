@@ -235,7 +235,6 @@ export const ProjectsView: React.FC = () => {
                         <div className="w-12 h-12 rounded-lg bg-[#16171A] overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">
                           {gen.tipo === 'imagen' && <img src={gen.archivo_generado} className="w-full h-full object-cover" />}
                           {gen.tipo === 'video' && <Video className="w-5 h-5 text-[#F81878]" />}
-                          {gen.tipo === 'audio' && <Music className="w-5 h-5 text-[#FFC600]" />}
                         </div>
                         <div className="overflow-hidden">
                           <span className="text-[10px] font-bold text-[#FFC600] uppercase">{gen.tipo}</span>

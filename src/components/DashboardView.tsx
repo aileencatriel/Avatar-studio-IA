@@ -31,7 +31,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const totalProjects = projects.length;
   const totalImages = generations.filter((g) => g.tipo === 'imagen').length;
   const totalVideos = generations.filter((g) => g.tipo === 'video').length;
-  const totalAudios = generations.filter((g) => g.tipo === 'audio').length;
 
   const recentGenerations = generations.slice(0, 5);
 
@@ -52,7 +51,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
               Estudio de Producción <span className="gold-gradient-text">IA de Avatares</span>
             </h2>
             <p className="text-xs md:text-sm text-gray-400 mt-2 leading-relaxed">
-              Crea personalidades digitales, genera avatares parlantes, voces sintéticas e imágenes fotorrealistas con modelos sincronizados en tiempo real.
+              Crea personalidades digitales, genera avatares parlantes e imágenes fotorrealistas con modelos sincronizados en tiempo real.
             </p>
           </div>
 
@@ -144,13 +143,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                         <div className={`w-10 h-10 rounded flex items-center justify-center shrink-0 ${
                           gen.tipo === 'video'
                             ? 'bg-[#7644C6]/20 text-[#7644C6]'
-                            : gen.tipo === 'imagen'
-                            ? 'bg-[#FFC600]/20 text-[#FFC600]'
-                            : 'bg-[#F81878]/20 text-[#F81878]'
+                            : 'bg-[#FFC600]/20 text-[#FFC600]'
                         }`}>
-                          {gen.tipo === 'video' && <Video className="w-5 h-5" />}
-                          {gen.tipo === 'imagen' && <ImageIcon className="w-5 h-5" />}
-                          {gen.tipo === 'audio' && <Music className="w-5 h-5" />}
+                          {gen.tipo === 'video' ? <Video className="w-5 h-5" /> : <ImageIcon className="w-5 h-5" />}
                         </div>
                         <div className="min-w-0">
                           <p className="font-medium text-white text-xs truncate max-w-[180px] sm:max-w-[240px]">

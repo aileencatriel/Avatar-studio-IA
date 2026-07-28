@@ -1,4 +1,4 @@
-export type MediaCategory = 'imagen' | 'video' | 'audio' | 'texto' | 'json';
+export type MediaCategory = 'imagen' | 'video' | 'texto' | 'json';
 
 export interface UserProfile {
   id: string;
@@ -23,10 +23,10 @@ export interface Avatar {
   estilo_respuesta?: string;
   instrucciones: string;
   imagen_principal: string;
-  voz: string;
+  voz?: string;
   modelo_video: string;
   modelo_imagen: string;
-  modelo_audio: string;
+  modelo_audio?: string;
   idioma: string;
   tono: string;
   edad_aparente: string;
@@ -88,14 +88,14 @@ export interface FileAsset {
   duracion?: string; // e.g., "00:15"
   resolucion?: string; // e.g., "1080x1920"
   fecha: string;
-  formato: string; // e.g., "png", "mp4", "mp3"
+  formato: string; // e.g., "png", "mp4"
 }
 
 export interface AIModel {
   id: string;
   nombre: string;
-  proveedor: string; // e.g., "APIMART", "OpenAI", "Stability", "Midjourney", "ElevenLabs"
-  categoria: 'imagen' | 'video' | 'audio' | 'multimodal' | 'lenguaje';
+  proveedor: string; // e.g., "APIMART", "OpenAI", "Stability", "Midjourney"
+  categoria: 'imagen' | 'video' | 'multimodal' | 'lenguaje';
   descripcion: string;
   version: string;
   parametros_admitidos: string[];
@@ -112,7 +112,6 @@ export interface AppSettings {
   supabaseServiceRoleKey: string;
   defaultImageModel: string;
   defaultVideoModel: string;
-  defaultAudioModel: string;
   defaultLanguageModel: string;
   theme: 'dark';
   autoSaveGenerations: boolean;

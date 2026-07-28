@@ -122,31 +122,6 @@ export const INITIAL_MODELS: AIModel[] = [
     es_favorito: true,
   },
 
-  // Audio
-  {
-    id: 'apimart-elevenlabs-multilingual-v2',
-    nombre: 'APIMART ElevenLabs Multilingual V2',
-    proveedor: 'APIMART',
-    categoria: 'audio',
-    descripcion: 'Clonación de voz y síntesis de voz natural ultra realista con infusión de emociones.',
-    version: 'v2.0',
-    parametros_admitidos: ['text', 'voice_id', 'stability', 'clarity', 'speed', 'emotion'],
-    estado: 'activo',
-    capacidades: ['Voice Cloning', 'Emotion Shift', 'Multilingual (29 idiomas)'],
-    es_favorito: true,
-  },
-  {
-    id: 'apimart-suno-music-v4',
-    nombre: 'APIMART Suno Music V4 Engine',
-    proveedor: 'APIMART',
-    categoria: 'audio',
-    descripcion: 'Generación de bandas sonoras, canciones completas y efectos de sonido para avatares.',
-    version: 'v4.0',
-    parametros_admitidos: ['prompt', 'genre', 'mood', 'instrumental', 'duration'],
-    estado: 'activo',
-    capacidades: ['Full Track Production', 'Custom Vocal Melodies'],
-  },
-
   // Multimodal & Language
   {
     id: 'apimart-gpt4o-multimodal',
