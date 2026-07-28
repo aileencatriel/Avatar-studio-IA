@@ -1,0 +1,6 @@
+{
+  "name": "Avatar Studio AI",
+  "description": "Plataforma profesional para crear, administrar y utilizar avatares de Inteligencia Artificial con APIMART y Supabase.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
