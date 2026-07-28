@@ -63,10 +63,12 @@ interface AppState {
   removeToast: (id: string) => void;
 }
 
+const savedApimartKey = typeof window !== 'undefined' ? localStorage.getItem('avatar_studio_apimart_key') : null;
+
 const DEFAULT_SETTINGS: AppSettings = {
-  apimartApiKey: import.meta.env.VITE_APIMART_API_KEY || '',
-  supabaseUrl: import.meta.env.VITE_SUPABASE_URL || '',
-  supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
+  apimartApiKey: import.meta.env.VITE_APIMART_API_KEY || savedApimartKey || 'sk-swC9xUU0wG2PZz5pPKNAt53P1bGHfVeIFljZ3h4eZPazP4i3',
+  supabaseUrl: import.meta.env.VITE_SUPABASE_URL || 'https://kbdhzssmodxcmgnhyuln.supabase.co',
+  supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtiZGh6c3Ntb2R4Y21nbmh5dWxuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyNTk3MTAsImV4cCI6MjEwMDgzNTcxMH0.fXOMwOm0YHBBit6kPhngAcFTxHau-LtMTpKDMC8z5WQ',
   supabaseServiceRoleKey: '',
   defaultImageModel: 'apimart-flux-1-dev',
   defaultVideoModel: 'apimart-kling-video-1.5',
